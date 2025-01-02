@@ -5,7 +5,7 @@
       <img src="app/icon.png" alt="App Icon" style="width: 100px; margin-right: 10px;">
     </td>
     <td>
-      <strong>AI agent designed to provide AI customer assistance</strong>
+      <strong>AI agent designed to provide WordPress customer assistance</strong>
     </td>
   </tr>
 </table>
