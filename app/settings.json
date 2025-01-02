@@ -13,6 +13,6 @@
   "searchEngine": "IndexedDB",
   "itemTypes": {},
   "slug": "ai-customer-assistant-for-wordpress",
-  "active": false,
+  "active": true,
   "category": "wordpress"
 }
