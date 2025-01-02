@@ -1,0 +1,18 @@
+{
+  "userId": "public",
+  "appId": "wordpress002",
+  "chatVendor": "bedrock",
+  "kbDescription": "AI agent designed to provide customer assistance to WordPress website visitors",
+  "kbTitle": "WP Customer",
+  "model": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+  "inputTools": [
+    "speechToText"
+  ],
+  "embeddingModel": "text-embedding-3-large",
+  "embeddingDimension": 1536,
+  "searchEngine": "IndexedDB",
+  "itemTypes": {},
+  "slug": "ai-customer-assistant-for-wordpress",
+  "active": true,
+  "category": "wordpress"
+}
