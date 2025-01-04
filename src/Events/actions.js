@@ -1,28 +1,37 @@
 export const getActions = (meta) => {
     return [
+        [/\/?wpSearch\("([^"]*)"(?:\s*,\s*(\d+))?(?:\s*,\s*"([^"]*)")?\)/, async (match) => {
+            const wpUrl = '{{secrets.wpUrl}}';
+            const headers = { 'WP-API-KEY': '{{secrets.wpapiKey}}' };
+            const query = match[1];
+            const limit = match[2] || 10;
+            const itemTypes = match[3];
 
-        [/\/?textToImage\("(.*)"\)/, async (match) => {
-            const response = await openkbs.textToImage(match[1], { serviceId: 'stability.sd3Medium' });
-            const imageSrc = `data:${response.ContentType};base64,${response.base64Data}`;
-            return { type: 'SAVED_CHAT_IMAGE', imageSrc, ...meta };
+            try {
+                const params = {
+                    query,
+                    kbId: openkbs.kbId,
+                    limit,
+                    ...(itemTypes && { itemTypes })
+                };
+
+                const response = await axios.get(`${wpUrl}/wp-json/openkbs/v1/search`, {
+                    headers,
+                    params
+                });
+
+                return { data: response.data, ...meta };
+            } catch (e) {
+                return { error: e.response?.data || e.message, ...meta };
+            }
         }],
-
-
         [/\/?googleSearch\("(.*)"\)/, async (match) => {
             const q = match[1];
             const searchParams = match[2] && JSON.parse(match[2]) || {};
             try {
-                const noSecretsProvided = '{{secrets.googlesearch_api_key}}'.includes('secrets.googlesearch_api_key');
+                const params = { q, ...searchParams};
 
-                const params = {
-                    q,
-                    ...searchParams,
-                    ...(noSecretsProvided ? {} : { key: '{{secrets.googlesearch_api_key}}', cx: '{{secrets.googlesearch_engine_id}}' }),
-                };
-
-                const response = noSecretsProvided
-                    ? await openkbs.googleSearch(params.q, params)
-                    : (await axios.get('https://www.googleapis.com/customsearch/v1', { params }))?.data?.items;
+                const response = await openkbs.googleSearch(params.q, params);
 
                 const data = response?.map(({ title, link, snippet, pagemap }) => ({
                     title,
@@ -37,8 +46,6 @@ export const getActions = (meta) => {
                 return { error: e.response.data, ...meta };
             }
         }],
-
-
 
         [/\/?webpageToText\("(.*)"\)/, async (match) => {
             try {
@@ -55,8 +62,6 @@ export const getActions = (meta) => {
             }
         }],
 
-
-
         [/\/?documentToText\("(.*)"\)/, async (match) => {
             try {
                 let response = await openkbs.documentToText(match[1]);
@@ -72,8 +77,6 @@ export const getActions = (meta) => {
             }
         }],
 
-
-
         [/\/?imageToText\("(.*)"\)/, async (match) => {
             try {
                 let response = await openkbs.imageToText(match[1]);
@@ -88,8 +91,6 @@ export const getActions = (meta) => {
             }
         }],
 
-
-
         [/\/?textToSpeech\("(.*)"\s*,\s*"(.*)"\)/, async (match) => {
             try {
                 const response = await openkbs.textToSpeech(match[2], {
@@ -100,7 +101,6 @@ export const getActions = (meta) => {
                 return { error: e.response.data, ...meta };
             }
         }],
-
 
     ];
 }
