@@ -25,27 +25,6 @@ export const getActions = (meta) => {
                 return { error: e.response?.data || e.message, ...meta };
             }
         }],
-        [/\/?googleSearch\("(.*)"\)/, async (match) => {
-            const q = match[1];
-            const searchParams = match[2] && JSON.parse(match[2]) || {};
-            try {
-                const params = { q, ...searchParams};
-
-                const response = await openkbs.googleSearch(params.q, params);
-
-                const data = response?.map(({ title, link, snippet, pagemap }) => ({
-                    title,
-                    link,
-                    snippet,
-                    image: pagemap?.metatags?.[0]?.["og:image"]
-                }));
-
-                return { data, ...meta };
-
-            } catch (e) {
-                return { error: e.response.data, ...meta };
-            }
-        }],
 
         [/\/?webpageToText\("(.*)"\)/, async (match) => {
             try {
