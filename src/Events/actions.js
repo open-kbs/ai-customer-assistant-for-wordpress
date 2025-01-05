@@ -72,7 +72,7 @@ export const getActions = (meta) => {
         [/\/?wpSearch\("([^"]*)"(?:\s*,\s*(\d+))?(?:\s*,\s*"([^"]*)")?(?:\s*,\s*(\d+(?:\.\d+)?))?\)/, async (match) => {
             const query = match[1];
             const limit = match[2] || 10;
-            const itemTypes = match[3];
+            const itemTypes = match[3] ? match[3].split(',').map(type => type.trim()) : undefined;
             const maxPrice = match[4];
 
             try {
@@ -133,17 +133,6 @@ export const getActions = (meta) => {
                     response = { detections: response?.detections?.[0]?.txt };
                 }
 
-                return { data: response };
-            } catch (e) {
-                return { error: e.response.data };
-            }
-        }],
-
-        [/\/?textToSpeech\("(.*)"\s*,\s*"(.*)"\)/, async (match) => {
-            try {
-                const response = await openkbs.textToSpeech(match[2], {
-                    languageCode: match[1]
-                });
                 return { data: response };
             } catch (e) {
                 return { error: e.response.data };

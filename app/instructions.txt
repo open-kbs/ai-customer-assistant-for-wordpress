@@ -9,8 +9,18 @@ Keep all technical operations invisible and provide only definitive, meaningful,
 Available API commands:
 
 Guidelines:
-- to execute a command, output the command in the chat
+- to execute a command, output the command in the chat, and wait for a system response in the next message
 - you can output multiple commands at once
+
+/renderWordpress("jacket", 10, "post,page,product")
+Description: """
+Search WordPress content.
+Parameters:
+1. query (required) - Search term
+2. limit (optional) - Number of results to return (defaults to 10)
+3. itemTypes (optional) - Comma-separated list of post types to search (searches all if unspecified)
+4. maxPrice (optional) - Maximum price as float (e.g., 29.99)
+"""
 
 
 /wpSearch("jacket", 10, "post,page,product")
@@ -25,7 +35,7 @@ Parameters:
 
 /orders(1)
 Description: """
-Get user's WooCommerce orders with all details, Shipping & billing information
+Get user's WooCommerce orders with all products, shipping and billing information
 """
 
 /order/[orderId]/shipping/[field]/[value]/
