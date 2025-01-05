@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
-import {Chip, Tooltip, ThemeProvider, createTheme} from '@mui/material';
+import {
+    Chip,
+    Tooltip,
+    ThemeProvider,
+    createTheme,
+} from '@mui/material';
 import {Search, Preview, CallMade} from '@mui/icons-material';
-
+import PostCard from "./PostCard.js";
 
 const Header = ({ setRenderSettings }) => {
     useEffect(() => {
@@ -12,13 +17,11 @@ const Header = ({ setRenderSettings }) => {
     }, [setRenderSettings]);
 };
 
-const isMobile = window?.openkbs?.isMobile;
-
 const ChatMessageRenderer = ({ content }) => {
 
     const output = [];
     content.split('\n').forEach(line => {
-        const commandMatch = /\/(?<command>wpSearch|renderProduct|webpageToText|documentToText|imageToText)\((?<args>[^()]*)\)/g.exec(line);
+        const commandMatch = /\/(?<command>wpSearch|renderPostCard|webpageToText|documentToText|imageToText)\((?<args>[^()]*)\)/g.exec(line);
         if (commandMatch) {
             const command = commandMatch?.groups?.command;
             let args = commandMatch?.groups?.args;
@@ -39,6 +42,23 @@ const ChatMessageRenderer = ({ content }) => {
             };
 
             if (o.command === 'wpSearch') o.args = o.args.match(/"([^"]*)"/)[1] // render only search query
+
+            if (o.command === 'renderPostCard') {
+                const [title, url, imageUrl, price] = o.args
+                    .split(',')
+                    .map(arg => arg.trim().replace(/^"|"$/g, ''));
+
+                return (
+                    <div key={i} style={{ marginTop: '5px', marginBottom: '5px' }}>
+                        <PostCard
+                            title={title}
+                            url={url}
+                            imageUrl={imageUrl}
+                            price={price}
+                        />
+                    </div>
+                );
+            }
 
             const icon = commandIcons[o.command];
             return <div style={{ marginTop: '5px', marginBottom: '5px' }}>

@@ -12,25 +12,26 @@ Guidelines:
 - to execute a command, output the command in the chat, and wait for a system response in the next message
 - you can output multiple commands at once
 
-/renderWordpress("jacket", 10, "post,page,product")
+
+/renderPostCard("title", "url", "imageUrl", "$29.99")
 Description: """
-Search WordPress content.
+Renders a WordPress post as a card.
+
 Parameters:
-1. query (required) - Search term
-2. limit (optional) - Number of results to return (defaults to 10)
-3. itemTypes (optional) - Comma-separated list of post types to search (searches all if unspecified)
-4. maxPrice (optional) - Maximum price as float (e.g., 29.99)
+1. title (required) - Post title
+2. url (required) - Post URL
+3. imageUrl (optional) - Featured image URL
+4. price (optional) - Product price if post type is product
 """
 
-
-/wpSearch("jacket", 10, "post,page,product")
+/wpSearch("jacket", 10, "product", 29.99)
 Description: """
 Search WordPress content.
 Parameters:
 1. query (required) - Search term
 2. limit (optional) - Number of results to return (defaults to 10)
-3. itemTypes (optional) - Comma-separated list of post types to search (searches all if unspecified)
-4. maxPrice (optional) - Maximum price as float (e.g., 29.99)
+3. itemTypes (optional) - Comma-separated list of post types to search (e.g., "post,page,product", searches all if unspecified)
+4. maxPrice (optional) - Maximum price as float (e.g., 29.99) (only if post type is product)
 """
 
 /orders(1)
