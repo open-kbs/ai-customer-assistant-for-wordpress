@@ -70,7 +70,7 @@ export const getActions = (meta) => {
         }],
 
         [/\/?wpSearch\("([^"]*)"(?:\s*,\s*(\d+))?(?:\s*,\s*"([^"]*)")?(?:\s*,\s*(\d+(?:\.\d+)?))?\)/, async (match) => {
-            const query = match[1];
+            const query = match[1] || " ";
             const limit = match[2] || 10;
             const itemTypes = match[3] ? match[3].split(',').map(type => type.trim()) : undefined;
             const maxPrice = match[4];
