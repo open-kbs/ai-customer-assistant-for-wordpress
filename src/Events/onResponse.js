@@ -1,13 +1,34 @@
 import {getActions} from './actions.js';
 
 export const handler = async (event) => {
-    const actions = getActions({_meta_actions: ["REQUEST_CHAT_MODEL"]});
+    const meta = {_meta_actions: ["REQUEST_CHAT_MODEL"]};
+    const actions = getActions(meta);
+    const lastMessage = event.payload.messages[event.payload.messages.length - 1].content;
 
-    for (let [regex, action] of actions) {
-        const lastMessage = event.payload.messages[event.payload.messages.length - 1].content;
-        const match = lastMessage?.match(regex);
-        if (match) return await action(match);
+    const matchingActions = actions.reduce((acc, [regex, action]) => {
+        const matches = [...lastMessage.matchAll(new RegExp(regex, 'g'))];
+        matches.forEach(match => {
+            acc.push(action(match));
+        });
+        return acc;
+    }, []);
+
+    if (matchingActions.length > 0) {
+        try {
+            const results = await Promise.all(matchingActions);
+            return {
+                type: 'RESPONSE',
+                data: results,
+                ...meta
+            };
+        } catch (error) {
+            return {
+                type: 'ERROR',
+                error: error.message,
+                ...meta
+            };
+        }
     }
 
-    return { type: 'CONTINUE' }
+    return { type: 'CONTINUE' };
 };
