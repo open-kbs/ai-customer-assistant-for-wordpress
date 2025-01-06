@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
     Chip,
     Tooltip,
@@ -70,36 +70,46 @@ const Header = ({ setRenderSettings }) => {
 };
 
 const ChatMessageRenderer = ({ content, msgId, kbId }) => {
+    const timeoutId = useRef(null);
 
     useEffect(() => {
-        // Clean up expired commands on each render
-        cleanupExecutedCommands();
+        const executeCommands = () => {
+            cleanupExecutedCommands();
+            if (isMessageExpired(msgId) || isCommandExecuted(msgId)) return;
 
-        // If message is expired or already executed, don't process it
-        if (isMessageExpired(msgId) || isCommandExecuted(msgId)) {
-            return;
-        }
+            // Parse and execute commands
+            const lines = content.split('\n');
+            let hasExecution = false;
+            lines.forEach(line => {
+                const navigateMatch = /\/navigate\("([^"]*)"\)/g.exec(line);
+                const clickMatch = /\/click\("([^"]*)"\)/g.exec(line);
 
-        // Parse and execute commands
-        const lines = content.split('\n');
-        let hasExecution = false;
-        lines.forEach(line => {
-            const navigateMatch = /\/navigate\("([^"]*)"\)/g.exec(line);
-            const clickMatch = /\/click\("([^"]*)"\)/g.exec(line);
+                if (navigateMatch) {
+                    hasExecution = true;
+                    executeCommand('navigate', { url: navigateMatch[1] }, kbId);
+                }
+                if (clickMatch) {
+                    hasExecution = true;
+                    executeCommand('click', { selector: clickMatch[1] }, kbId);
+                }
+            });
 
-            if (navigateMatch) {
-                hasExecution = true;
-                executeCommand('navigate', { url: navigateMatch[1] }, kbId);
+            // Mark message as executed if it contained commands
+            if (hasExecution) markCommandAsExecuted(msgId);
+        };
+
+        if (timeoutId.current) clearTimeout(timeoutId.current);
+
+        // Postpone execution until LLM completes content generation
+        timeoutId.current = setTimeout(executeCommands, 1000);
+
+        // Cleanup function
+        return () => {
+            if (timeoutId.current) {
+                clearTimeout(timeoutId.current);
             }
-            if (clickMatch) {
-                hasExecution = true;
-                executeCommand('click', { selector: clickMatch[1] }, kbId);
-            }
-        });
-
-        // Mark message as executed if it contained commands
-        if (hasExecution) markCommandAsExecuted(msgId);
-    }, [content, msgId]);
+        };
+    }, [content, msgId, kbId]);
 
     const output = [];
     content.split('\n').forEach(line => {
