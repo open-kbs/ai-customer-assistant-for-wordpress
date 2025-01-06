@@ -8,6 +8,58 @@ import {
 import {Search, Preview, CallMade} from '@mui/icons-material';
 import PostCard from "./PostCard.js";
 
+const COMMAND_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+const getMessageTimestamp = (msgId) => {
+    return parseInt(msgId.split('-')[0]);
+};
+
+const isMessageExpired = (msgId) => {
+    const timestamp = getMessageTimestamp(msgId);
+    return Date.now() - timestamp > COMMAND_EXPIRY_TIME;
+};
+
+const cleanupExecutedCommands = () => {
+    const executedCommandMessages = JSON.parse(localStorage.getItem('executedCommandMessages') || '{}');
+    const now = Date.now();
+
+    // Filter out expired messages
+    const cleanedCommands = Object.entries(executedCommandMessages).reduce((acc, [msgId, value]) => {
+        if (now - getMessageTimestamp(msgId) <= COMMAND_EXPIRY_TIME) {
+            acc[msgId] = value;
+        }
+        return acc;
+    }, {});
+
+    localStorage.setItem('executedCommandMessages', JSON.stringify(cleanedCommands));
+};
+
+const isCommandExecuted = (msgId) => {
+    const executedCommandMessages = JSON.parse(localStorage.getItem('executedCommandMessages') || '{}');
+    return executedCommandMessages[msgId];
+};
+
+// Helper function to mark command as executed
+const markCommandAsExecuted = (msgId) => {
+    const executedCommandMessages = JSON.parse(localStorage.getItem('executedCommandMessages') || '{}');
+    executedCommandMessages[msgId] = true;
+    localStorage.setItem('executedCommandMessages', JSON.stringify(executedCommandMessages));
+};
+
+// Helper function to execute command
+const executeCommand = (command, args, kbId) => {
+    // Prepare the command message
+    const commandMessage = {
+        type: 'openkbsCommand',
+        command: command,
+        kbId,
+        ...args
+    };
+
+    // Send the command to the parent window
+    window.parent.postMessage(commandMessage, '*');
+};
+
 const Header = ({ setRenderSettings }) => {
     useEffect(() => {
         setRenderSettings({
@@ -17,11 +69,41 @@ const Header = ({ setRenderSettings }) => {
     }, [setRenderSettings]);
 };
 
-const ChatMessageRenderer = ({ content }) => {
+const ChatMessageRenderer = ({ content, msgId, kbId }) => {
+
+    useEffect(() => {
+        // Clean up expired commands on each render
+        cleanupExecutedCommands();
+
+        // If message is expired or already executed, don't process it
+        if (isMessageExpired(msgId) || isCommandExecuted(msgId)) {
+            return;
+        }
+
+        // Parse and execute commands
+        const lines = content.split('\n');
+        let hasExecution = false;
+        lines.forEach(line => {
+            const navigateMatch = /\/navigate\("([^"]*)"\)/g.exec(line);
+            const clickMatch = /\/click\("([^"]*)"\)/g.exec(line);
+
+            if (navigateMatch) {
+                hasExecution = true;
+                executeCommand('navigate', { url: navigateMatch[1] }, kbId);
+            }
+            if (clickMatch) {
+                hasExecution = true;
+                executeCommand('click', { selector: clickMatch[1] }, kbId);
+            }
+        });
+
+        // Mark message as executed if it contained commands
+        if (hasExecution) markCommandAsExecuted(msgId);
+    }, [content, msgId]);
 
     const output = [];
     content.split('\n').forEach(line => {
-        const commandMatch = /\/(?<command>wpSearch|renderPostCard|webpageToText|documentToText|imageToText)\((?<args>[^()]*)\)/g.exec(line);
+        const commandMatch = /\/(?<command>wpSearch|renderPostCard|webpageToText|documentToText|imageToText|navigate|click)\((?<args>[^()]*)\)/g.exec(line);
         if (commandMatch) {
             const command = commandMatch?.groups?.command;
             let args = commandMatch?.groups?.args;
@@ -86,14 +168,15 @@ const ChatMessageRenderer = ({ content }) => {
 };
 
 const onRenderChatMessage = async (params) => {
-    const { content } = params.messages[params.msgIndex];
-    const { CodeViewer, setInputValue, sendButtonRippleRef } = params;
+    const { content, msgId } = params.messages[params.msgIndex];
+    const { setInputValue, sendButtonRippleRef, KB } = params;
 
     if (content.match(/\/(?<command>\w+)\(([\s\S]*)\)/g)) {
         return (
             <ChatMessageRenderer
                 content={content}
-                CodeViewer={CodeViewer}
+                msgId={msgId}
+                kbId={KB?.kbId}
                 setInputValue={setInputValue}
                 sendButtonRippleRef={sendButtonRippleRef}
             />

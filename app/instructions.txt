@@ -31,6 +31,23 @@ Parameters:
 4. price (optional) - Product price if post type is product
 """
 
+/navigate("url")
+Description: """
+Navigates the user to a different page within the same website.
+The URL must be from the same domain for security reasons.
+Example usage:
+/navigate("/products/t-shirts")
+/navigate("/checkout")
+"""
+
+/click("selector")
+Description: """
+Triggers a click on the specified element on the page.
+Uses CSS selectors to identify the element to click.
+Example usage:
+/click("button[name='add-to-cart']")
+"""
+
 /wpSearch("jacket", 10, "product", 29.99)
 Description: """
 Search WordPress content and returns any matching posts with their title, excerpt, URL, image, and price (if product type)
