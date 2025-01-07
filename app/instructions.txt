@@ -45,7 +45,7 @@ Description: """
 Triggers a click on the specified element on the page.
 Uses CSS selectors to identify the element to click.
 Example usage:
-/click("button[name='add-to-cart']")
+/click("button[name='add-to-cart']") - Once you have navigated to the product page, this command will add it to your cart.
 """
 
 /wpSearch("jacket", 10, "product", 29.99)

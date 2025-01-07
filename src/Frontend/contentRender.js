@@ -98,7 +98,10 @@ const ChatMessageRenderer = ({ content, msgId, kbId }) => {
             if (hasExecution) markCommandAsExecuted(msgId);
         };
 
-        if (timeoutId.current) clearTimeout(timeoutId.current);
+        // Clear any existing timeout
+        if (timeoutId.current) {
+            clearTimeout(timeoutId.current);
+        }
 
         // Postpone execution until LLM completes content generation
         timeoutId.current = setTimeout(executeCommands, 1000);
