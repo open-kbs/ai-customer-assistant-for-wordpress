@@ -21,6 +21,7 @@ const Header = ({ setRenderSettings }) => {
         setRenderSettings({
             disableCodeExecuteButton: true,
             inputLabelsQuickSend: true,
+            disableChatModelsSelect: true
         });
     }, [setRenderSettings]);
 };
