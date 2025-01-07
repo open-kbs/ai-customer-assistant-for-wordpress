@@ -8,7 +8,8 @@ import {
 import {Search, Preview, CallMade} from '@mui/icons-material';
 import PostCard from "./PostCard.js";
 
-const COMMAND_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+const COMMAND_EXPIRY_TIME = 1 * 60 * 1000;
+const COMMAND_DELAY = 2000;
 
 const getMessageTimestamp = (msgId) => {
     return parseInt(msgId.split('-')[0]);
@@ -19,45 +20,50 @@ const isMessageExpired = (msgId) => {
     return Date.now() - timestamp > COMMAND_EXPIRY_TIME;
 };
 
+const getExecutedCommands = () => {
+    return JSON.parse(localStorage.getItem('executedCommands') || '{}');
+};
+
 const cleanupExecutedCommands = () => {
-    const executedCommandMessages = JSON.parse(localStorage.getItem('executedCommandMessages') || '{}');
+    const executedCommands = getExecutedCommands();
     const now = Date.now();
 
-    // Filter out expired messages
-    const cleanedCommands = Object.entries(executedCommandMessages).reduce((acc, [msgId, value]) => {
+    const cleanedCommands = Object.entries(executedCommands).reduce((acc, [msgId, commands]) => {
         if (now - getMessageTimestamp(msgId) <= COMMAND_EXPIRY_TIME) {
-            acc[msgId] = value;
+            acc[msgId] = commands;
         }
         return acc;
     }, {});
 
-    localStorage.setItem('executedCommandMessages', JSON.stringify(cleanedCommands));
+    localStorage.setItem('executedCommands', JSON.stringify(cleanedCommands));
 };
 
-const isCommandExecuted = (msgId) => {
-    const executedCommandMessages = JSON.parse(localStorage.getItem('executedCommandMessages') || '{}');
-    return executedCommandMessages[msgId];
+const isCommandExecuted = (msgId, commandIndex) => {
+    const executedCommands = getExecutedCommands();
+    return executedCommands[msgId]?.includes(commandIndex);
 };
 
-// Helper function to mark command as executed
-const markCommandAsExecuted = (msgId) => {
-    const executedCommandMessages = JSON.parse(localStorage.getItem('executedCommandMessages') || '{}');
-    executedCommandMessages[msgId] = true;
-    localStorage.setItem('executedCommandMessages', JSON.stringify(executedCommandMessages));
+const markCommandAsExecuted = (msgId, commandIndex) => {
+    const executedCommands = getExecutedCommands();
+    if (!executedCommands[msgId]) {
+        executedCommands[msgId] = [];
+    }
+    executedCommands[msgId].push(commandIndex);
+    localStorage.setItem('executedCommands', JSON.stringify(executedCommands));
 };
 
-// Helper function to execute command
+// Modified command execution
 const executeCommand = (command, args, kbId) => {
-    // Prepare the command message
-    const commandMessage = {
-        type: 'openkbsCommand',
-        command: command,
-        kbId,
-        ...args
-    };
-
-    // Send the command to the parent window
-    window.parent.postMessage(commandMessage, '*');
+    return new Promise((resolve) => {
+        const commandMessage = {
+            type: 'openkbsCommand',
+            command: command,
+            kbId,
+            ...args
+        };
+        window.parent.postMessage(commandMessage, '*');
+        setTimeout(resolve, COMMAND_DELAY);
+    });
 };
 
 const Header = ({ setRenderSettings }) => {
@@ -70,32 +76,48 @@ const Header = ({ setRenderSettings }) => {
 };
 
 const ChatMessageRenderer = ({ content, msgId, kbId }) => {
+    const [executionInProgress, setExecutionInProgress] = useState(false);
     const timeoutId = useRef(null);
 
     useEffect(() => {
-        const executeCommands = () => {
+        const executeCommands = async () => {
+            if (isMessageExpired(msgId) || executionInProgress) return;
             cleanupExecutedCommands();
-            if (isMessageExpired(msgId) || isCommandExecuted(msgId)) return;
 
-            // Parse and execute commands
+            // Parse commands from content
             const lines = content.split('\n');
-            let hasExecution = false;
-            lines.forEach(line => {
-                const navigateMatch = /\/navigate\("([^"]*)"\)/g.exec(line);
-                const clickMatch = /\/click\("([^"]*)"\)/g.exec(line);
+            const commands = lines
+                .map((line, index) => {
+                    const navigateMatch = /\/navigate\("([^"]*)"\)/g.exec(line);
+                    const clickMatch = /\/click\("([^"]*)"\)/g.exec(line);
 
-                if (navigateMatch) {
-                    hasExecution = true;
-                    executeCommand('navigate', { url: navigateMatch[1] }, kbId);
-                }
-                if (clickMatch) {
-                    hasExecution = true;
-                    executeCommand('click', { selector: clickMatch[1] }, kbId);
-                }
-            });
+                    if (navigateMatch) {
+                        return { type: 'navigate', args: { url: navigateMatch[1] }, index };
+                    }
+                    if (clickMatch) {
+                        return { type: 'click', args: { selector: clickMatch[1] }, index };
+                    }
+                    return null;
+                })
+                .filter(cmd => cmd !== null);
 
-            // Mark message as executed if it contained commands
-            if (hasExecution) markCommandAsExecuted(msgId);
+            if (commands.length === 0) return;
+
+            setExecutionInProgress(true);
+
+            // Execute commands sequentially
+            for (const command of commands) {
+                if (!isCommandExecuted(msgId, command.index)) {
+                    try {
+                        markCommandAsExecuted(msgId, command.index);
+                        await executeCommand(command.type, command.args, kbId);
+                    } catch (error) {
+                        console.error('Command execution failed:', error);
+                    }
+                }
+            }
+
+            setExecutionInProgress(false);
         };
 
         // Clear any existing timeout
@@ -106,13 +128,12 @@ const ChatMessageRenderer = ({ content, msgId, kbId }) => {
         // Postpone execution until LLM completes content generation
         timeoutId.current = setTimeout(executeCommands, 1000);
 
-        // Cleanup function
         return () => {
             if (timeoutId.current) {
                 clearTimeout(timeoutId.current);
             }
         };
-    }, [content, msgId, kbId]);
+    }, [content, msgId, kbId, executionInProgress]);
 
     const output = [];
     content.split('\n').forEach(line => {
