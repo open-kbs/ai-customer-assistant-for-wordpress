@@ -88,10 +88,14 @@ const ChatMessageRenderer = ({ content, msgId, kbId }) => {
 
     const output = [];
     content.split('\n').forEach(line => {
-        const commandMatch = /\/(?<command>wpSearch|renderPostCard|webpageToText|documentToText|imageToText|navigate|click)\((?<args>[^()]*)\)/g.exec(line);
+        const renderPostMatch = /\/renderPostCard\("([^"]*)",\s*"([^"]*)"(?:,\s*"([^"]*)")?(?:,\s*"([^"]*)")?\)/g.exec(line);
+        const commandMatch = renderPostMatch || /\/(?<command>wpSearch|webpageToText|documentToText|imageToText|navigate|click)\((?<args>[^()]*)\)/g.exec(line);
+
         if (commandMatch) {
-            const command = commandMatch?.groups?.command;
-            let args = commandMatch?.groups?.args;
+            const command = renderPostMatch ? 'renderPostCard' : commandMatch.groups?.command;
+            const args = renderPostMatch
+                ? commandMatch.slice(1).filter(Boolean).map(arg => `"${arg}"`).join(', ')
+                : commandMatch.groups?.args;
             output.push({ command, args, line });
         } else {
             output.push(line);
