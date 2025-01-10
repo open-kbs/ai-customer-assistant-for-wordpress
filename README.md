@@ -13,7 +13,9 @@
 ## Configuration
 
 After installing the Agent through the OpenKBS WordPress plugin, follow these steps to configure the key features:
+
 <br />
+
 ### Search Widget Setup
 
 1. Navigate to **OpenKBS → Settings → Applications → WP Customer**
@@ -33,7 +35,7 @@ After installing the Agent through the OpenKBS WordPress plugin, follow these st
 
 The chat widget integrates automatically with the site search, enabling the LLM AI Model to search your website data and assist clients with real-world actions.
 
-To enable the Chat Widget:
+#### To enable the Chat Widget:
 
 1. Go to **OpenKBS → Settings → Applications → WP Customer**
 2. Enable the "Website Chat Widget"
