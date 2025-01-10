@@ -35,4 +35,4 @@ Enables a public search endpoint allowing website visitors to perform semantic s
 2. Enable "Public Search API"
 3. Copy the provided Shortcode
 4. Navigate to **Appearance → Widgets**
-5. Add a "Shortcode" widget to your header widget area
+5. Add a "Shortcode" widget to your WordPress header widget area
