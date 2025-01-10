@@ -12,11 +12,11 @@
 
 ## Configuration
 
+
 After installing the Agent through the OpenKBS WordPress plugin, follow these steps to configure the key features:
 
-<br />
 
-### Search Widget Setup
+#### Search Widget Setup
 
 #### 1. Navigate to **OpenKBS → Settings → Applications → WP Customer**
 #### 2. Enable "Semantic Search Indexing"
@@ -29,11 +29,12 @@ After installing the Agent through the OpenKBS WordPress plugin, follow these st
 
 > **Note**: If you have "WP Agent" installed, you can ask it to integrate the Shortcode into your wordpress or replace the woocommerce default search
 
-<br />
 
-### Chat Widget Setup
+#### Chat Widget Setup
+
 
 The chat widget integrates automatically with the site search, enabling the LLM AI Model to search your website data and assist clients with real-world actions.
+
 
 #### To enable the Chat Widget:
 
