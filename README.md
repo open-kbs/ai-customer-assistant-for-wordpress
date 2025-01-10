@@ -13,7 +13,7 @@
 ## Configuration
 
 After installing the Agent through the OpenKBS WordPress plugin, follow these steps to configure the key features:
-
+<br />
 ### Search Widget Setup
 
 1. Navigate to **OpenKBS → Settings → Applications → WP Customer**
@@ -26,6 +26,8 @@ After installing the Agent through the OpenKBS WordPress plugin, follow these st
 8. Add a "Shortcode" widget to your header widget area
 
 > **Note**: If you have "WP Agent" installed, you can ask it to integrate the Shortcode into your wordpress or replace the woocommerce default search
+
+<br />
 
 ### Chat Widget Setup
 
