@@ -17,16 +17,17 @@ After installing the Agent through the OpenKBS WordPress plugin, follow these st
 #### Enable Semantic Search:
 Semantic Search creates and maintains embeddings of your WordPress content, enabling AI-powered search capabilities across your site.
 
-1. Navigate to **OpenKBS → Settings → Applications → WP Customer**
-2. Enable "Semantic Search Indexing"
+1. Navigate to **WordPress → OpenKBS → Settings → Applications → WP Customer**
+2. Enable "Semantic Search Indexing" and click "Save All"
 3. Click "Start Indexing" to generate embeddings for your existing WordPress content
 
 #### Enable Chat Widget:
 
 The chat widget integrates automatically and **requires Semantic Search**, enabling the LLM AI Model to search your website data and assist clients with real-world actions.
 
-1. Go to **OpenKBS → Settings → Applications → WP Customer**
-2. Enable the "Website Chat Widget"
+1. Go to **WordPress → OpenKBS → Settings → Applications → WP Customer**
+2. Enable the "Website Chat Widget" and click "Save All"
+3. Open your WordPress homepage and test the chat widget 
 
 #### Enable Search Widget (optional):
 Enables a public search endpoint allowing website visitors to perform semantic searches through a widget interface.
