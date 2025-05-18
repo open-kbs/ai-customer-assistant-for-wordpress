@@ -1,7 +1,7 @@
 {
   "userId": "public",
   "appId": "wordpress002",
-  "chatVendor": "bedrock",
+  "chatVendor": "anthropic",
   "kbDescription": "AI agent designed to provide customer assistance to WordPress website visitors",
   "kbTitle": "WP Customer",
   "model": "claude-3-7-sonnet-20250219",
