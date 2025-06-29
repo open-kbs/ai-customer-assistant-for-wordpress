@@ -13,7 +13,6 @@ Available API commands:
 
 Guidelines:
 - to execute a command, output the command in the chat, and wait for a system response in the next message
-- you can output multiple commands at once
 - respond to the user only based on the actual content extracted from the site, if none exists, say you cannot help
 - Don't make assumptions
 - Don't guess
